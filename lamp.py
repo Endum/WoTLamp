@@ -1,39 +1,41 @@
 from asyncio import current_task
 import json
+import sys
 import tornado.gen
 from tornado.ioloop import IOLoop
 from wotpy.protocols.http.server import HTTPServer
 from wotpy.wot.servient import Servient
+import asyncio
 
-CATALOGUE_PORT = 9000
-HTTP_PORT = 9001
+CATALOGUE_PORT = 9100
+HTTP_PORT = 9101
 
 TD = {
     'title': 'Smart-Lamp',
-    'id': 'it.unibo.filippo.benvenuti3.coffee-machine',
-    'description': 'A smart lamp which can be turned on and off.',
-    '@context': ['https://www.w3.org/2019/wot/td/v1',],
+    'id': 'it:unibo:filippo:benvenuti3:wot-lamp',
+    'description': '''A smart lamp which can be turned on and off.''',
+    '@context': [
+        'https://www.w3.org/2019/wot/td/v1',
+    ],
     'properties': {
         'state': {
             'type': 'string',
-        },
+            'observable': True
+        }
     },
     'actions': {
         'on': {
-            'description': 'Turn on the lamp, if already on nothing happens.'
+            'description': '''Turn on the lamp, if already on nothing happens.'''
         },
         'off': {
-            'description': 'Turn off the lamp, if already off nothing happens.'
-        },
+            'description': '''Turn off the lamp, if already off nothing happens.'''
+        }
     },
     'events': {
         'stateChanged': {
-            'description': 'Lamp just got toggle.',
+            'description': '''Lamp just got toggle.''',
             'data': {
-                'type': {
-                    'state': 'string',
-                    'timestamp': 'time',
-                },
+                'type': 'string'
             },
         },
     },
@@ -41,6 +43,7 @@ TD = {
 
 @tornado.gen.coroutine
 def main():
+
     # Http service.
     http_server = HTTPServer(port=HTTP_PORT)
     
@@ -55,7 +58,7 @@ def main():
     exposed_thing = wot.produce(json.dumps(TD))
 
     # Initialize thing property.
-    exposed_thing.properties['state'].write("off")
+    exposed_thing.properties['state'].write('off')
 
     # Observe state value changing.
     exposed_thing.properties['state'].subscribe(
@@ -98,6 +101,9 @@ def main():
     exposed_thing.expose()
     print('Lamp ready to serve.')
 
-    if __name__ == '__main__':
-        IOLoop.current().add_callback(main)
-        IOLoop.current().start()
+if __name__ == '__main__':
+    #asyncio.set_event_loop(asyncio.ProactorEventLoop())
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    IOLoop.current().add_callback(main)
+    IOLoop.current().start()
