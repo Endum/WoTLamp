@@ -7,7 +7,7 @@ from wotpy.protocols.http.server import HTTPServer
 from wotpy.wot.servient import Servient
 import asyncio
 
-CATALOGUE_PORT = 9100
+CATALOGUE_PORT = 443
 HTTP_PORT = 9101
 
 TD = {
